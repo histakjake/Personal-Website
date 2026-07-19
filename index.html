@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- ============================================================= -->
+<!--  SEO / SHARE PREVIEW  (shows when you paste the link anywhere) -->
+<!-- ============================================================= -->
+<title>Jake Retich — Vertical Video Editor</title>
+<meta name="description" content="Vertical-platform video editor. Premiere Pro + After Effects. Motion graphics, clean pacing, and hooks that hold." />
+<meta name="theme-color" content="#131417" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Jake Retich — Vertical Video Editor" />
+<meta property="og:description" content="Premiere Pro + After Effects. Motion graphics, clean pacing, and hooks that hold." />
+<!-- OPTIONAL: after deploy, drop a 1200x630 image at /og.jpg and uncomment: -->
+<!-- <meta property="og:image" content="https://YOUR-DOMAIN/og.jpg" /> -->
+
+<!-- SVG favicon (inline, so nothing 404s) -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23131417'/%3E%3Crect x='14.5' y='6' width='3' height='20' rx='1.5' fill='%23FF5330'/%3E%3Cpolygon points='11,12 11,20 18,16' fill='%23F4F2ED'/%3E%3C/svg%3E" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+
+<style>
+/* ============================================================= */
+/*  TOKENS                                                        */
+/* ============================================================= */
+:root{
+  --bg:#131417;
+  --surface:#1B1D22;
+  --surface-2:#23262D;
+  --line:#2E323B;
+  --line-soft:#22252B;
+  --text:#F4F2ED;
+  --muted:#8E93A0;
+  --muted-2:#6A6F7B;
+  --hot:#FF5330;            /* playhead / record / primary energy */
+  --hot-dim:#C23A22;
+  /* Premiere-style clip label colors (used small, as technique tags) */
+  --clip-violet:#A98BFF;
+  --clip-cyan:#4CD6E6;
+  --clip-amber:#FFC24B;
+  --clip-lime:#9FE870;
+  --clip-pink:#FF7BC2;
+
+  --maxw:1180px;
+  --radius:14px;
+  --ease:cubic-bezier(.2,.7,.2,1);
+
+  --f-display:"Anton", "Arial Narrow", sans-serif;
+  --f-body:"Inter", system-ui, -apple-system, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto;}}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--f-body);
+  font-size:16px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+a{color:inherit;text-decoration:none;}
+img{display:block;max-width:100%;}
+::selection{background:var(--hot);color:#fff;}
+
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px;}
+
+.mono{font-family:var(--f-mono);}
+.eyebrow{
+  font-family:var(--f-mono);
+  font-size:12px;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:var(--muted);
+}
+
+/* ============================================================= */
+/*  TOP BAR                                                       */
+/* ============================================================= */
+.topbar{
+  position:sticky;top:0;z-index:50;
+  background:rgba(19,20,23,.82);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line-soft);
+}
+.topbar-inner{
+  display:flex;align-items:center;justify-content:space-between;
+  height:60px;
+}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--f-mono);font-weight:700;letter-spacing:.04em;font-size:14px;}
+.rec-dot{width:9px;height:9px;border-radius:50%;background:var(--hot);box-shadow:0 0 0 0 rgba(255,83,48,.6);animation:pulse 2.4s infinite;}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,83,48,.55);}70%{box-shadow:0 0 0 7px rgba(255,83,48,0);}100%{box-shadow:0 0 0 0 rgba(255,83,48,0);}}
+@media (prefers-reduced-motion: reduce){.rec-dot{animation:none;}}
+.topnav{display:flex;gap:6px;}
+.topnav a{
+  font-family:var(--f-mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);padding:7px 12px;border-radius:8px;transition:color .2s,background .2s;
+}
+.topnav a:hover,.topnav a:focus-visible{color:var(--text);background:var(--surface-2);}
+
+/* ============================================================= */
+/*  HERO                                                          */
+/* ============================================================= */
+.hero{padding:64px 0 40px;}
+.hero-grid{
+  display:grid;grid-template-columns:minmax(240px,340px) 1fr;gap:52px;align-items:center;
+}
+/* reel slot (9:16) */
+.reel{
+  position:relative;aspect-ratio:9/16;border-radius:var(--radius);overflow:hidden;
+  background:var(--surface);border:1px solid var(--line);
+  box-shadow:0 30px 60px -30px rgba(0,0,0,.8);
+}
+.reel iframe{position:absolute;inset:0;width:100%;height:100%;border:0;}
+.reel-placeholder{
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:14px;text-align:center;padding:24px;
+  background:
+    repeating-linear-gradient(45deg,transparent 0 12px,rgba(255,255,255,.015) 12px 24px),
+    radial-gradient(120% 80% at 50% 0%, #23262D 0%, #191B20 60%, #15171B 100%);
+}
+.reel-placeholder .ph-play{
+  width:58px;height:58px;border-radius:50%;border:2px solid var(--hot);
+  display:flex;align-items:center;justify-content:center;
+}
+.reel-placeholder .ph-play::after{content:"";border-style:solid;border-width:9px 0 9px 15px;border-color:transparent transparent transparent var(--hot);margin-left:4px;}
+.reel-placeholder .ph-title{font-family:var(--f-mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);}
+.reel-placeholder .ph-sub{font-size:12.5px;color:var(--muted-2);max-width:180px;line-height:1.4;}
+.reel-tag{
+  position:absolute;left:12px;top:12px;z-index:2;
+  font-family:var(--f-mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+  background:rgba(0,0,0,.55);color:var(--text);padding:5px 9px;border-radius:6px;border:1px solid rgba(255,255,255,.08);
+  display:flex;align-items:center;gap:6px;
+}
+.reel-tag .rec-dot{width:7px;height:7px;}
+
+.hero-copy{max-width:640px;}
+.hero-h1{
+  font-family:var(--f-display);
+  font-weight:400;
+  font-size:clamp(42px,7vw,84px);
+  line-height:.94;
+  letter-spacing:.005em;
+  text-transform:uppercase;
+}
+.hero-h1 .word{display:inline-block;margin-right:.26em;}
+.hero-h1 .hot{color:var(--hot);}
+.hero-sub{
+  margin-top:22px;font-size:clamp(15px,2vw,18px);color:var(--muted);max-width:520px;
+}
+.hero-sub strong{color:var(--text);font-weight:600;}
+.credits{
+  margin-top:20px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+  font-family:var(--f-mono);font-size:12.5px;color:var(--muted);
+}
+.credits .label{color:var(--muted-2);letter-spacing:.12em;text-transform:uppercase;font-size:11px;}
+.credits .names{color:var(--text);}
+.cta-row{margin-top:30px;display:flex;gap:12px;flex-wrap:wrap;}
+.btn{
+  font-family:var(--f-mono);font-size:13px;letter-spacing:.06em;text-transform:uppercase;
+  padding:13px 22px;border-radius:10px;cursor:pointer;border:1px solid transparent;transition:transform .15s var(--ease),background .2s,border-color .2s;
+  display:inline-flex;align-items:center;gap:9px;
+}
+.btn:active{transform:translateY(1px);}
+.btn-primary{background:var(--hot);color:#fff;}
+.btn-primary:hover,.btn-primary:focus-visible{background:#ff6a4d;}
+.btn-ghost{background:transparent;color:var(--text);border-color:var(--line);}
+.btn-ghost:hover,.btn-ghost:focus-visible{border-color:var(--muted);background:var(--surface);}
+
+/* ============================================================= */
+/*  TIMELINE STRIP (signature)                                    */
+/* ============================================================= */
+.timeline{
+  border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);
+  background:var(--surface);
+}
+.timeline-inner{position:relative;padding:14px 24px 16px;max-width:var(--maxw);margin:0 auto;}
+.ruler{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:10px;color:var(--muted-2);margin-bottom:9px;letter-spacing:.05em;}
+.track{position:relative;height:34px;border-radius:8px;background:var(--bg);border:1px solid var(--line);overflow:hidden;display:flex;}
+.clip{
+  flex:1;position:relative;border-right:1px solid var(--bg);
+  display:flex;align-items:center;padding-left:12px;cursor:pointer;
+  font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text);
+  transition:filter .2s,background .2s;overflow:hidden;
+}
+.clip:last-child{border-right:0;}
+.clip::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;}
+.clip:hover{filter:brightness(1.25);}
+.clip.is-active{background:rgba(255,255,255,.05);}
+.clip[data-c="reel"]::before{background:var(--hot);}
+.clip[data-c="work"]::before{background:var(--clip-cyan);}
+.clip[data-c="fit"]::before{background:var(--clip-amber);}
+.clip[data-c="contact"]::before{background:var(--clip-violet);}
+.playhead{position:absolute;top:0;bottom:0;width:2px;background:var(--hot);left:0;pointer-events:none;box-shadow:0 0 8px var(--hot);z-index:3;}
+.playhead::before{content:"";position:absolute;top:-1px;left:-4px;width:10px;height:8px;background:var(--hot);clip-path:polygon(0 0,100% 0,50% 100%);}
+
+/* ============================================================= */
+/*  SECTIONS                                                      */
+/* ============================================================= */
+section[id]{scroll-margin-top:78px;}
+.block{padding:74px 0;}
+.block-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:34px;flex-wrap:wrap;}
+.block-title{font-family:var(--f-display);font-weight:400;text-transform:uppercase;font-size:clamp(28px,4.5vw,46px);line-height:1;letter-spacing:.01em;}
+.block-meta{font-family:var(--f-mono);font-size:12px;color:var(--muted);letter-spacing:.06em;}
+
+/* WORK GRID */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:16px;}
+.card{
+  position:relative;aspect-ratio:9/16;border-radius:12px;overflow:hidden;cursor:pointer;
+  background:var(--surface-2);border:1px solid var(--line);
+  transition:transform .18s var(--ease),border-color .2s;
+}
+.card:hover,.card:focus-visible{transform:translateY(-4px);border-color:var(--muted-2);outline:none;}
+.card:focus-visible{box-shadow:0 0 0 2px var(--hot);}
+.card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .35s var(--ease),filter .25s;}
+.card:hover img{transform:scale(1.05);filter:brightness(.7);}
+.card .overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.55) 0%,rgba(0,0,0,0) 45%);}
+.card .play{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(.9);
+  width:48px;height:48px;border-radius:50%;background:rgba(19,20,23,.55);border:2px solid rgba(255,255,255,.85);
+  display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s,transform .2s var(--ease);
+}
+.card:hover .play,.card:focus-visible .play{opacity:1;transform:translate(-50%,-50%) scale(1);}
+.card .play::after{content:"";border-style:solid;border-width:8px 0 8px 13px;border-color:transparent transparent transparent #fff;margin-left:3px;}
+.card .tag{
+  position:absolute;left:9px;bottom:9px;z-index:2;
+  font-family:var(--f-mono);font-size:10px;letter-spacing:.04em;text-transform:uppercase;
+  padding:4px 8px;border-radius:6px;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.12);
+}
+.card .idx{position:absolute;right:9px;top:9px;z-index:2;font-family:var(--f-mono);font-size:10px;color:rgba(255,255,255,.65);}
+.card iframe{position:absolute;inset:0;width:100%;height:100%;border:0;z-index:4;}
+
+/* FIT */
+.fit-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:48px;align-items:start;}
+.fit-copy p{font-size:clamp(16px,2vw,19px);color:var(--muted);line-height:1.65;}
+.fit-copy p strong{color:var(--text);font-weight:600;}
+.tools{display:flex;flex-wrap:wrap;gap:9px;margin-top:4px;}
+.tool{
+  font-family:var(--f-mono);font-size:12px;letter-spacing:.04em;
+  padding:9px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--text);
+}
+.tool.key{border-color:var(--hot);color:var(--hot);}
+.tools-label{font-family:var(--f-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-2);margin-bottom:14px;}
+
+/* CONTACT */
+.contact{border-top:1px solid var(--line-soft);}
+.contact-grid{display:flex;flex-wrap:wrap;gap:14px;margin-top:28px;}
+.contact-link{
+  display:flex;align-items:center;gap:12px;padding:16px 20px;border-radius:12px;
+  border:1px solid var(--line);background:var(--surface);flex:1 1 220px;transition:border-color .2s,background .2s,transform .15s var(--ease);
+}
+.contact-link:hover,.contact-link:focus-visible{border-color:var(--muted);background:var(--surface-2);transform:translateY(-2px);outline:none;}
+.contact-link .k{font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);}
+.contact-link .v{font-size:14.5px;color:var(--text);font-weight:500;word-break:break-all;}
+.reloc{margin-top:26px;font-family:var(--f-mono);font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:9px;}
+.reloc .rec-dot{background:var(--clip-lime);box-shadow:none;animation:none;}
+
+footer{padding:40px 0 60px;color:var(--muted-2);font-family:var(--f-mono);font-size:11.5px;letter-spacing:.05em;}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;border-top:1px solid var(--line-soft);padding-top:22px;}
+
+/* ============================================================= */
+/*  RESPONSIVE                                                    */
+/* ============================================================= */
+@media (max-width:820px){
+  .hero-grid{grid-template-columns:1fr;gap:34px;}
+  .reel{max-width:300px;margin:0 auto;}
+  .fit-grid{grid-template-columns:1fr;gap:34px;}
+  .topnav{display:none;}
+}
+@media (max-width:520px){
+  .grid{grid-template-columns:repeat(2,1fr);gap:12px;}
+  .block{padding:56px 0;}
+  .hero{padding:44px 0 32px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================= -->
+<!--  TOP BAR                                                      -->
+<!-- ============================================================= -->
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <a class="brand" href="#top"><span class="rec-dot"></span><span id="brandName">JR</span></a>
+    <nav class="topnav" aria-label="Sections">
+      <a href="#work">Work</a>
+      <a href="#fit">Fit</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="reel" id="reelSlot">
+        <!-- reel injected by JS (placeholder until CONFIG.reelYouTubeId is set) -->
+      </div>
+      <div class="hero-copy">
+        <h1 class="hero-h1" id="heroH1" aria-label=""></h1>
+        <p class="hero-sub" id="heroSub"></p>
+        <div class="credits">
+          <span class="label">Edited for</span>
+          <span class="names" id="creditsNames"></span>
+        </div>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="#work">See the work</a>
+          <a class="btn btn-ghost" href="#contact">Get in touch</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TIMELINE STRIP (signature) -->
+  <div class="timeline" aria-hidden="true">
+    <div class="timeline-inner">
+      <div class="ruler" id="ruler"></div>
+      <div class="track" id="track">
+        <div class="clip" data-c="reel" data-target="#top">Reel</div>
+        <div class="clip" data-c="work" data-target="#work">Work</div>
+        <div class="clip" data-c="fit" data-target="#fit">Fit</div>
+        <div class="clip" data-c="contact" data-target="#contact">Contact</div>
+        <div class="playhead" id="playhead"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WORK -->
+  <section id="work" class="block">
+    <div class="wrap">
+      <div class="block-head">
+        <div>
+          <div class="eyebrow">The work</div>
+          <h2 class="block-title">Vertical edits</h2>
+        </div>
+        <div class="block-meta" id="workMeta"></div>
+      </div>
+      <div class="grid" id="workGrid"></div>
+    </div>
+  </section>
+
+  <!-- FIT -->
+  <section id="fit" class="block" style="background:var(--surface);border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);">
+    <div class="wrap">
+      <div class="block-head">
+        <div>
+          <div class="eyebrow">Why me for this role</div>
+          <h2 class="block-title">Built for this</h2>
+        </div>
+      </div>
+      <div class="fit-grid">
+        <div class="fit-copy" id="fitCopy"></div>
+        <div>
+          <div class="tools-label">Toolset</div>
+          <div class="tools" id="tools"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact" class="block contact">
+    <div class="wrap">
+      <div class="block-head">
+        <div>
+          <div class="eyebrow">Next step</div>
+          <h2 class="block-title">Let's talk</h2>
+        </div>
+      </div>
+      <div class="contact-grid" id="contactGrid"></div>
+      <div class="reloc"><span class="rec-dot"></span><span id="relocLine"></span></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span id="footL"></span>
+    <span>Built to be watched all the way through.</span>
+  </div>
+</footer>
+
+<script>
+/* ================================================================= */
+/*  ██  EDIT EVERYTHING HERE  ██                                      */
+/*  This is the only block you touch to update the site.             */
+/* ================================================================= */
+const CONFIG = {
+  name: "Jake Retich",
+  brandInitials: "JR",
+
+  // Hero headline. Wrap any word in {curly braces} to make it the hot accent color.
+  headline: "Vertical video people actually {finish}.",
+  sub: "Premiere Pro + After Effects. Motion graphics, clean pacing, and hooks that hold — I cut 30-minute recordings so every frame earns the next one.",
+
+  // ⚠️ VERIFY BEFORE SHARING. Only list creators/channels you're cleared to name. Comma-separated.
+  credits: "REPLACE — e.g. CrunchLabs, Mark Rober",
+
+  // ---- HERO REEL ----
+  // Leave "" to show the placeholder. When your reel is up, paste the YouTube ID
+  // (the part after watch?v= or /shorts/ ), e.g. "dQw4w9WgXcQ". It auto-plays muted + loops.
+  reelYouTubeId: "",
+
+  // ---- FIT SECTION ----  (each string is a paragraph)
+  fit: [
+    "I make long recordings feel short. I cut for **retention first** — the hook lands in the first two seconds and every cut buys the next one.",
+    "The motion graphics and comps get built in **After Effects**, not faked in the assembly. Rotoscoping, tracking, sound design — the parts that make a Short feel expensive.",
+    "I hit deadlines, turn notes fast, and I'm **open to relocating to Greenville**."
+  ],
+  tools: [
+    { name: "Premiere Pro", key: true },
+    { name: "After Effects", key: true },
+    { name: "Motion Graphics" },
+    { name: "Rotoscoping" },
+    { name: "Compositing" },
+    { name: "Sound Design" }
+  ],
+
+  // ---- CONTACT ----  (leave any value "" to hide that tile)
+  email: "you@example.com",
+  linkedin: "https://linkedin.com/in/REPLACE",
+  youtube: "https://youtube.com/@JakeRetich",
+  resume: "",   // e.g. "/resume.pdf" after you add the file, or a Drive link
+
+  relocation: "Open to relocating to Greenville, NC — and to a fast start.",
+
+  // ---- THE WORK ----
+  // id = YouTube video ID.  tag = 1–2 word technique label (shows on the card).
+  // tagColor options: hot, cyan, amber, lime, violet, pink   (leave off for neutral)
+  // Reorder freely — best work first. Add/remove lines anytime.
+  videos: [
+    { id: "q3nD5qD758o", tag: "", tagColor: "cyan" },
+    { id: "NnvIwG0S8WE", tag: "", tagColor: "cyan" },
+    { id: "IEJALLQFmDs", tag: "", tagColor: "amber" },
+    { id: "9BsQpGhwVAY", tag: "", tagColor: "cyan" },
+    { id: "kgSHJhX6ly0", tag: "", tagColor: "violet" },
+    { id: "lNOjw3KRsqg", tag: "", tagColor: "cyan" },
+    { id: "01RBbBunuc8", tag: "", tagColor: "amber" },
+    { id: "mLYGbS8fp-k", tag: "", tagColor: "cyan" },
+    { id: "QGLykO_oHyA", tag: "", tagColor: "lime" },
+    { id: "8dlRet9ynqw", tag: "", tagColor: "cyan" },
+    { id: "DHwYaVhO-Io", tag: "", tagColor: "amber" },
+    { id: "LgPvRGzSMSU", tag: "", tagColor: "cyan" },
+    { id: "DPxe7ipsj4o", tag: "", tagColor: "violet" },
+    { id: "e50ICSGRrnw", tag: "", tagColor: "cyan" },
+    { id: "d8JkQYdHpnU", tag: "", tagColor: "amber" },
+    { id: "JNTamX0VOpQ", tag: "", tagColor: "cyan" },
+    { id: "giRypxceh4E", tag: "", tagColor: "lime" },
+    { id: "f-bQUu6vM7k", tag: "", tagColor: "cyan" },
+    { id: "i9lKnzAZ5WU", tag: "", tagColor: "violet" }
+  ]
+};
+
+/* ================================================================= */
+/*  RENDER  (you shouldn't need to touch anything below)             */
+/* ================================================================= */
+const $ = (s, r=document) => r.querySelector(s);
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const clipColorVar = { hot:"--hot", cyan:"--clip-cyan", amber:"--clip-amber", lime:"--clip-lime", violet:"--clip-violet", pink:"--clip-pink" };
+
+// Brand + footer
+$("#brandName").textContent = CONFIG.brandInitials || "JR";
+$("#footL").textContent = "© " + new Date().getFullYear() + " " + CONFIG.name;
+document.title = CONFIG.name + " — Vertical Video Editor";
+
+// Hero headline as pop-word captions
+(function renderHeadline(){
+  const el = $("#heroH1");
+  el.setAttribute("aria-label", CONFIG.headline.replace(/[{}]/g,""));
+  const words = CONFIG.headline.split(" ");
+  words.forEach((w,i)=>{
+    const hot = /^\{.*\}$/.test(w);
+    const clean = w.replace(/[{}]/g,"");
+    const span = document.createElement("span");
+    span.className = "word" + (hot ? " hot" : "");
+    span.textContent = clean;
+    if(!reduceMotion){
+      span.style.opacity = "0";
+      span.style.transform = "translateY(14px) scale(.82)";
+      span.style.transition = "opacity .34s var(--ease), transform .34s var(--ease)";
+      span.style.transitionDelay = (0.18 + i*0.075) + "s";
+    }
+    el.appendChild(span);
+  });
+  if(!reduceMotion){
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      el.querySelectorAll(".word").forEach(s=>{s.style.opacity="1";s.style.transform="none";});
+    }));
+  }
+})();
+
+$("#heroSub").innerHTML = CONFIG.sub.replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>");
+// Hide the whole "Edited for" row until you've filled in real, cleared names.
+if(CONFIG.credits && !/REPLACE/i.test(CONFIG.credits)){
+  $("#creditsNames").textContent = CONFIG.credits;
+} else {
+  document.querySelector(".credits").style.display = "none";
+}
+
+// Hero reel: embed if ID set, else placeholder
+(function renderReel(){
+  const slot = $("#reelSlot");
+  if(CONFIG.reelYouTubeId){
+    slot.innerHTML =
+      '<div class="reel-tag"><span class="rec-dot"></span>Reel</div>' +
+      '<iframe src="https://www.youtube-nocookie.com/embed/'+CONFIG.reelYouTubeId+
+      '?autoplay=1&mute=1&loop=1&playlist='+CONFIG.reelYouTubeId+
+      '&controls=1&modestbranding=1&rel=0&playsinline=1" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen title="Demo reel"></iframe>';
+  } else {
+    slot.innerHTML =
+      '<div class="reel-tag"><span class="rec-dot"></span>Reel — in progress</div>' +
+      '<div class="reel-placeholder"><div class="ph-play"></div>' +
+      '<div class="ph-title">New reel landing</div>' +
+      '<div class="ph-sub">Fresh cut going up shortly.</div></div>';
+  }
+})();
+
+// Work grid — lazy YouTube facades (fast load, embed only on click)
+(function renderWork(){
+  const grid = $("#workGrid");
+  $("#workMeta").textContent = CONFIG.videos.length + " vertical edits · click to play";
+  CONFIG.videos.forEach((v,i)=>{
+    const card = document.createElement("button");
+    card.className = "card";
+    card.type = "button";
+    card.setAttribute("aria-label", "Play edit " + (i+1));
+    const num = String(i+1).padStart(2,"0");
+    const tagStyle = v.tagColor && clipColorVar[v.tagColor]
+      ? 'style="color:var('+clipColorVar[v.tagColor]+');border-color:var('+clipColorVar[v.tagColor]+')"' : "";
+    card.innerHTML =
+      '<img src="https://i.ytimg.com/vi/'+v.id+'/maxresdefault.jpg" ' +
+        'onerror="this.onerror=null;this.src=\'https://i.ytimg.com/vi/'+v.id+'/hqdefault.jpg\'" ' +
+        'alt="Edit '+(i+1)+'" loading="lazy">' +
+      '<div class="overlay"></div>' +
+      '<span class="idx">'+num+'</span>' +
+      '<span class="play"></span>' +
+      (v.tag ? '<span class="tag" '+tagStyle+'>'+v.tag+'</span>' : '');
+    card.addEventListener("click", ()=>{
+      card.innerHTML =
+        '<iframe src="https://www.youtube-nocookie.com/embed/'+v.id+
+        '?autoplay=1&playsinline=1&rel=0&modestbranding=1" ' +
+        'allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen title="Edit '+(i+1)+'"></iframe>';
+    }, { once:true });
+    grid.appendChild(card);
+  });
+})();
+
+// Fit copy + tools
+(function renderFit(){
+  const c = $("#fitCopy");
+  CONFIG.fit.forEach(p=>{
+    const el = document.createElement("p");
+    el.innerHTML = p.replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>");
+    c.appendChild(el);
+  });
+  const t = $("#tools");
+  CONFIG.tools.forEach(tool=>{
+    const el = document.createElement("span");
+    el.className = "tool" + (tool.key ? " key" : "");
+    el.textContent = tool.name;
+    t.appendChild(el);
+  });
+})();
+
+// Contact tiles
+(function renderContact(){
+  const grid = $("#contactGrid");
+  const tiles = [
+    { k:"Email", v:CONFIG.email, href:"mailto:"+CONFIG.email, show:CONFIG.email && !CONFIG.email.includes("example.com") },
+    { k:"LinkedIn", v:"View profile", href:CONFIG.linkedin, show:CONFIG.linkedin && !CONFIG.linkedin.includes("REPLACE") },
+    { k:"YouTube", v:"Channel", href:CONFIG.youtube, show:!!CONFIG.youtube },
+    { k:"Résumé", v:"Download PDF", href:CONFIG.resume, show:!!CONFIG.resume }
+  ];
+  tiles.forEach(t=>{
+    if(!t.show) return;
+    const a = document.createElement("a");
+    a.className = "contact-link";
+    a.href = t.href;
+    if(t.k!=="Email") { a.target="_blank"; a.rel="noopener"; }
+    a.innerHTML = '<span><span class="k">'+t.k+'</span><br><span class="v">'+t.v+'</span></span>';
+    grid.appendChild(a);
+  });
+  $("#relocLine").textContent = CONFIG.relocation;
+})();
+
+// Timeline ruler ticks
+(function ruler(){
+  const r = $("#ruler");
+  const marks = ["00:00","00:15","00:30","00:45","01:00"];
+  marks.forEach(m=>{ const s=document.createElement("span"); s.textContent=m; r.appendChild(s); });
+})();
+
+// Timeline: clip click-to-scroll + playhead follows scroll + active clip
+(function timeline(){
+  const clips = [...document.querySelectorAll(".clip")];
+  const head = $("#playhead");
+  clips.forEach(c=>c.addEventListener("click",()=>{
+    const t=document.querySelector(c.dataset.target);
+    if(t) t.scrollIntoView({behavior: reduceMotion?"auto":"smooth"});
+  }));
+  const sections = ["#top","#work","#fit","#contact"].map(s=>document.querySelector(s));
+  function onScroll(){
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    const p = max>0 ? Math.min(1, Math.max(0, window.scrollY/max)) : 0;
+    head.style.left = (p*100) + "%";
+    let active = 0;
+    sections.forEach((sec,i)=>{ if(sec && sec.getBoundingClientRect().top <= 120) active = i; });
+    clips.forEach((c,i)=>c.classList.toggle("is-active", i===active));
+  }
+  window.addEventListener("scroll", onScroll, { passive:true });
+  window.addEventListener("resize", onScroll);
+  onScroll();
+})();
+</script>
+</body>
+</html>
