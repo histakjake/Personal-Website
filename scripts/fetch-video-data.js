@@ -1,10 +1,14 @@
 #!/usr/bin/env node
 /*
- * Pulls real titles, view counts, and publish dates from YouTube and writes
- * them into CONFIG.videos in index.html. Two things it can do:
+ * Pulls real titles, view counts, publish dates, and thumbnail orientation
+ * from YouTube and writes them into CONFIG.videos in index.html. Two things
+ * it can do:
  *
- *   1. Refresh every video already listed in CONFIG.videos (title/views/date
- *      only — role/creator are left alone, those need your judgment).
+ *   1. Refresh every video already listed in CONFIG.videos (title/views/date/
+ *      orientation only — role/creator are left alone, those need your
+ *      judgment). Orientation (vertical/horizontal) is auto-detected from
+ *      the real thumbnail dimensions, so vertical Shorts and horizontal
+ *      long-form videos both display with the correct aspect ratio.
  *   2. Optionally pull in NEW videos straight from a channel (e.g. your own
  *      long-form uploads) with --channel, skipping anything under 60s
  *      (Shorts) and anything already in the list.
@@ -82,8 +86,8 @@ const newRole = flags.role || "Creator";
 const html = fs.readFileSync(indexPath, "utf8");
 
 // Matches one video entry line, e.g.:
-// { id: "abc123", title: "", role: "Editor", views: "", date: "", creator: "" },
-const entryLineRe = /^([ \t]*)\{\s*id:\s*"([^"]+)",\s*title:\s*"([^"]*)",\s*role:\s*"([^"]*)",\s*views:\s*"([^"]*)",\s*date:\s*"([^"]*)",\s*creator:\s*"([^"]*)"\s*\},?[ \t]*$/gm;
+// { id: "abc123", title: "", role: "Editor", views: "", date: "", creator: "", orientation: "vertical" },
+const entryLineRe = /^([ \t]*)\{\s*id:\s*"([^"]+)",\s*title:\s*"([^"]*)",\s*role:\s*"([^"]*)",\s*views:\s*"([^"]*)",\s*date:\s*"([^"]*)",\s*creator:\s*"([^"]*)",\s*orientation:\s*"([^"]*)"\s*\},?[ \t]*$/gm;
 
 function formatViews(n) {
   n = Number(n);
@@ -98,6 +102,12 @@ function parseISODuration(iso) {
   const m = String(iso || "").match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
   if (!m) return 0;
   return (+m[1] || 0) * 3600 + (+m[2] || 0) * 60 + (+m[3] || 0);
+}
+function detectOrientation(item, fallback) {
+  const t = item.snippet?.thumbnails || {};
+  const pick = t.maxres || t.standard || t.high || t.medium || t.default;
+  if (!pick || !pick.width || !pick.height) return fallback;
+  return pick.height > pick.width ? "vertical" : "horizontal";
 }
 
 async function apiGet(endpoint, params) {
@@ -162,15 +172,16 @@ async function fetchPlaylistVideoIds(playlistId, max) {
   const missing = [];
 
   for (const match of entries) {
-    const [full, indent, id, oldTitle, role, oldViews, oldDate, creator] = match;
+    const [full, indent, id, oldTitle, role, oldViews, oldDate, creator, oldOrientation] = match;
     const item = byId.get(id);
     if (!item) { missing.push(id); continue; }
 
     const title = item.snippet?.title || oldTitle;
     const views = item.statistics?.viewCount ? formatViews(item.statistics.viewCount) : oldViews;
     const date = item.snippet?.publishedAt ? item.snippet.publishedAt.slice(0, 7) : oldDate;
+    const orientation = detectOrientation(item, oldOrientation || "vertical");
 
-    const newLine = `${indent}{ id: "${id}", title: "${esc(title)}", role: "${esc(role)}", views: "${esc(views)}", date: "${esc(date)}", creator: "${esc(creator)}" },`;
+    const newLine = `${indent}{ id: "${id}", title: "${esc(title)}", role: "${esc(role)}", views: "${esc(views)}", date: "${esc(date)}", creator: "${esc(creator)}", orientation: "${esc(orientation)}" },`;
     if (newLine !== full) changedCount++;
     updated = updated.replace(full, newLine);
   }
@@ -200,6 +211,7 @@ async function fetchPlaylistVideoIds(playlistId, max) {
         title: item.snippet?.title || "",
         views: item.statistics?.viewCount ? formatViews(item.statistics.viewCount) : "",
         date: item.snippet?.publishedAt ? item.snippet.publishedAt.slice(0, 7) : "",
+        orientation: detectOrientation(item, "horizontal"),
       });
     }
 
@@ -209,7 +221,7 @@ async function fetchPlaylistVideoIds(playlistId, max) {
       const indent = last[1];
       const insertPos = last.index + last[0].length;
       const lines = newEntries
-        .map(v => `\n${indent}{ id: "${v.id}", title: "${esc(v.title)}", role: "${esc(newRole)}", views: "${esc(v.views)}", date: "${esc(v.date)}", creator: "${esc(newCreator)}" },`)
+        .map(v => `\n${indent}{ id: "${v.id}", title: "${esc(v.title)}", role: "${esc(newRole)}", views: "${esc(v.views)}", date: "${esc(v.date)}", creator: "${esc(newCreator)}", orientation: "${esc(v.orientation)}" },`)
         .join("");
       updated = updated.slice(0, insertPos) + lines + updated.slice(insertPos);
     }

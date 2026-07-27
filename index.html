@@ -188,14 +188,19 @@ section[id]{scroll-margin-top:64px;}
 /* WORK GRID */
 .grid{
   display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:22px 16px;margin-top:28px;
+  align-items:start;
   transition:opacity .22s var(--ease);
 }
 .grid.is-filtering{opacity:0;}
 .card{display:flex;flex-direction:column;}
+.card.card-h{grid-column:span 2;}
 .thumb{
   position:relative;aspect-ratio:9/16;border-radius:12px;overflow:hidden;cursor:pointer;
   background:var(--surface-2);border:1px solid var(--line);width:100%;
   transition:transform .18s var(--ease),border-color .2s;
+}
+.thumb.thumb-h{
+  aspect-ratio:16/9;
 }
 .thumb:hover,.thumb:focus-visible{transform:translateY(-4px);border-color:var(--muted-2);outline:none;}
 .thumb:focus-visible{box-shadow:0 0 0 2px var(--hot);}
@@ -417,30 +422,32 @@ const CONFIG = {
   // date     = "YYYY-MM", used for the Newest/Oldest sort. Leave "" if unknown.
   // creator  = channel this was made for, e.g. "Mark Rober" or "Zach King".
   //            Leave "" to keep it out of the creator tabs (still shows under "All").
+  // orientation = "vertical" (9:16, e.g. Shorts) or "horizontal" (16:9, e.g. long-form).
+  //            Controls the thumbnail's aspect ratio.
   // Fill in title/views/date/creator for each — reorder or add/remove lines anytime.
   videos: [
-    { id: "q3nD5qD758o", title: "I Discovered a Lost Plane", role: "Editor", views: "15.3M", date: "2026-07", creator: "" },
-    { id: "NnvIwG0S8WE", title: "Tennis Ball Cannon vs Human Strength", role: "Editor", views: "26.2M", date: "2026-05", creator: "" },
-    { id: "IEJALLQFmDs", title: "You’re Breathing Dinosaur Breath!", role: "Editor", views: "8.5M", date: "2026-04", creator: "" },
-    { id: "9BsQpGhwVAY", title: "pride comes before flop", role: "Editor", views: "179.2M", date: "2026-02", creator: "" },
-    { id: "kgSHJhX6ly0", title: "Can You Ship A Potato Through The Mail?", role: "Editor", views: "17.2M", date: "2026-02", creator: "" },
-    { id: "lNOjw3KRsqg", title: "How Superglue Actually Works", role: "Editor", views: "12.3M", date: "2025-12", creator: "" },
-    { id: "01RBbBunuc8", title: "Engineers vs GIANT Egg Drop", role: "Editor", views: "285.6K", date: "2026-05", creator: "" },
-    { id: "mLYGbS8fp-k", title: "Summer Camp Gone Wrong", role: "Editor", views: "2M", date: "2025-06", creator: "" },
-    { id: "QGLykO_oHyA", title: "My team got freaked out because of this!", role: "Editor", views: "279.4K", date: "2025-06", creator: "" },
-    { id: "8dlRet9ynqw", title: "My Live Trick Almost Failed!", role: "Editor", views: "176.6K", date: "2025-05", creator: "" },
-    { id: "DHwYaVhO-Io", title: "Zach vs Stormtroopers", role: "Editor", views: "146.4K", date: "2025-05", creator: "" },
-    { id: "LgPvRGzSMSU", title: "Does this count as a romantic date night?", role: "Editor", views: "150.8K", date: "2025-04", creator: "" },
-    { id: "DPxe7ipsj4o", title: "Using magic to make a PB&J sandwich 🥪", role: "Editor", views: "133.4K", date: "2025-04", creator: "" },
-    { id: "e50ICSGRrnw", title: "Monster truck jumps over Zach Kng!", role: "Editor", views: "177.4K", date: "2024-12", creator: "" },
-    { id: "d8JkQYdHpnU", title: "Mario Kart IRL 🏎️", role: "Editor", views: "196.5K", date: "2024-11", creator: "" },
-    { id: "JNTamX0VOpQ", title: "Did you watch the bonus scene at the end?", role: "Editor", views: "155.6K", date: "2024-10", creator: "" },
-    { id: "giRypxceh4E", title: "I guess it's time to buy new clothes", role: "Editor", views: "230.8K", date: "2024-10", creator: "" },
-    { id: "f-bQUu6vM7k", title: "Homemade Airplane ✈️ Set", role: "Editor", views: "233.9K", date: "2024-09", creator: "" },
-    { id: "i9lKnzAZ5WU", title: "🪴+👱‍♂️=😱", role: "Editor", views: "246.5K", date: "2024-10", creator: "" },
-    { id: "-F_0Vy3TWFc", title: "", role: "Creator", views: "", date: "", creator: "My Channel" },
-    { id: "Rl65tKXRLU8", title: "", role: "Creator", views: "", date: "", creator: "My Channel" },
-    { id: "HNetY41ZC7k", title: "", role: "Creator", views: "", date: "", creator: "My Channel" },
+    { id: "q3nD5qD758o", title: "I Discovered a Lost Plane", role: "Editor", views: "15.3M", date: "2026-07", creator: "", orientation: "vertical" },
+    { id: "NnvIwG0S8WE", title: "Tennis Ball Cannon vs Human Strength", role: "Editor", views: "26.2M", date: "2026-05", creator: "", orientation: "vertical" },
+    { id: "IEJALLQFmDs", title: "You’re Breathing Dinosaur Breath!", role: "Editor", views: "8.5M", date: "2026-04", creator: "", orientation: "vertical" },
+    { id: "9BsQpGhwVAY", title: "pride comes before flop", role: "Editor", views: "179.2M", date: "2026-02", creator: "", orientation: "vertical" },
+    { id: "kgSHJhX6ly0", title: "Can You Ship A Potato Through The Mail?", role: "Editor", views: "17.2M", date: "2026-02", creator: "", orientation: "vertical" },
+    { id: "lNOjw3KRsqg", title: "How Superglue Actually Works", role: "Editor", views: "12.3M", date: "2025-12", creator: "", orientation: "vertical" },
+    { id: "01RBbBunuc8", title: "Engineers vs GIANT Egg Drop", role: "Editor", views: "285.6K", date: "2026-05", creator: "", orientation: "vertical" },
+    { id: "mLYGbS8fp-k", title: "Summer Camp Gone Wrong", role: "Editor", views: "2M", date: "2025-06", creator: "", orientation: "vertical" },
+    { id: "QGLykO_oHyA", title: "My team got freaked out because of this!", role: "Editor", views: "279.4K", date: "2025-06", creator: "", orientation: "vertical" },
+    { id: "8dlRet9ynqw", title: "My Live Trick Almost Failed!", role: "Editor", views: "176.6K", date: "2025-05", creator: "", orientation: "vertical" },
+    { id: "DHwYaVhO-Io", title: "Zach vs Stormtroopers", role: "Editor", views: "146.4K", date: "2025-05", creator: "", orientation: "vertical" },
+    { id: "LgPvRGzSMSU", title: "Does this count as a romantic date night?", role: "Editor", views: "150.8K", date: "2025-04", creator: "", orientation: "vertical" },
+    { id: "DPxe7ipsj4o", title: "Using magic to make a PB&J sandwich 🥪", role: "Editor", views: "133.4K", date: "2025-04", creator: "", orientation: "vertical" },
+    { id: "e50ICSGRrnw", title: "Monster truck jumps over Zach Kng!", role: "Editor", views: "177.4K", date: "2024-12", creator: "", orientation: "vertical" },
+    { id: "d8JkQYdHpnU", title: "Mario Kart IRL 🏎️", role: "Editor", views: "196.5K", date: "2024-11", creator: "", orientation: "vertical" },
+    { id: "JNTamX0VOpQ", title: "Did you watch the bonus scene at the end?", role: "Editor", views: "155.6K", date: "2024-10", creator: "", orientation: "vertical" },
+    { id: "giRypxceh4E", title: "I guess it's time to buy new clothes", role: "Editor", views: "230.8K", date: "2024-10", creator: "", orientation: "vertical" },
+    { id: "f-bQUu6vM7k", title: "Homemade Airplane ✈️ Set", role: "Editor", views: "233.9K", date: "2024-09", creator: "", orientation: "vertical" },
+    { id: "i9lKnzAZ5WU", title: "🪴+👱‍♂️=😱", role: "Editor", views: "246.5K", date: "2024-10", creator: "", orientation: "vertical" },
+    { id: "-F_0Vy3TWFc", title: "", role: "Creator", views: "", date: "", creator: "My Channel", orientation: "horizontal" },
+    { id: "Rl65tKXRLU8", title: "", role: "Creator", views: "", date: "", creator: "My Channel", orientation: "horizontal" },
+    { id: "HNetY41ZC7k", title: "", role: "Creator", views: "", date: "", creator: "My Channel", orientation: "horizontal" },
   ]
 };
 
@@ -589,8 +596,9 @@ function renderWork(){
     $("#workMeta").textContent = list.length + " vertical edit" + (list.length===1?"":"s") + " · click to play";
 
     list.forEach((v,i)=>{
+      const isHorizontal = v.orientation === "horizontal";
       const card = document.createElement("div");
-      card.className = "card";
+      card.className = "card" + (isHorizontal ? " card-h" : "");
       const num = String(i+1).padStart(2,"0");
       const title = v.title || ("Edit " + num);
       const metaBits = [];
@@ -598,7 +606,7 @@ function renderWork(){
       if(v.views) metaBits.push('<span>'+v.views+' views</span>');
 
       const thumb = document.createElement("button");
-      thumb.className = "thumb";
+      thumb.className = "thumb" + (isHorizontal ? " thumb-h" : "");
       thumb.type = "button";
       thumb.setAttribute("aria-label", "Play " + title);
       thumb.innerHTML =
