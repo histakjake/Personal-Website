@@ -239,8 +239,6 @@ section[id]{scroll-margin-top:64px;}
 .contact-link:hover,.contact-link:focus-visible{border-color:var(--muted);background:var(--surface-2);transform:translateY(-2px);outline:none;}
 .contact-link .k{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);}
 .contact-link .v{font-size:14.5px;color:var(--text);font-weight:600;word-break:break-all;margin-top:2px;}
-.reloc{margin-top:24px;font-size:13px;color:var(--muted);display:flex;align-items:center;gap:9px;}
-.reloc .dot{width:7px;height:7px;border-radius:50%;background:#7CD98A;flex-shrink:0;}
 
 footer{padding:36px 0 56px;color:var(--muted-2);font-size:12px;}
 footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;border-top:1px solid var(--line-soft);padding-top:22px;}
@@ -358,7 +356,6 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
         <h2 class="block-title">Let's talk</h2>
       </div>
       <div class="contact-grid" id="contactGrid" data-reveal></div>
-      <div class="reloc"><span class="dot"></span><span id="relocLine"></span></div>
     </div>
   </section>
 </main>
@@ -409,8 +406,6 @@ const CONFIG = {
   linkedin: "https://www.linkedin.com/in/jake-retich-b3b103270",
   youtube: "https://youtube.com/@JakeRetich",
   resume: "",   // e.g. "/resume.pdf" after you add the file, or a Drive link
-
-  relocation: "Open to relocating to Greenville, NC — and to a fast start.",
 
   // ---- THE WORK ----
   // id       = YouTube video ID.
@@ -657,7 +652,6 @@ renderWork();
     a.innerHTML = '<span><span class="k">'+t.k+'</span><br><span class="v">'+t.v+'</span></span>';
     grid.appendChild(a);
   });
-  $("#relocLine").textContent = CONFIG.relocation;
 })();
 
 // Scroll-reveal
