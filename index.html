@@ -143,11 +143,12 @@ button{font-family:inherit;}
 .profile{padding:52px 0 34px;}
 .profile-row{display:flex;gap:24px;align-items:flex-start;}
 .avatar{
-  width:84px;height:84px;border-radius:50%;flex-shrink:0;
+  width:84px;height:84px;border-radius:50%;flex-shrink:0;overflow:hidden;
   background:linear-gradient(135deg,var(--hot),var(--hot-2));
   display:flex;align-items:center;justify-content:center;
   font-weight:800;font-size:28px;color:#fff;letter-spacing:-.02em;
 }
+.avatar img{width:100%;height:100%;object-fit:cover;display:block;}
 .profile-name{font-size:clamp(26px,4vw,34px);font-weight:800;letter-spacing:-.02em;line-height:1.15;}
 .profile-handle{margin-top:4px;font-size:14.5px;color:var(--muted);font-weight:500;}
 .profile-bio{margin-top:12px;font-size:15.5px;color:var(--muted);max-width:600px;line-height:1.6;}
@@ -375,6 +376,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
 const CONFIG = {
   name: "Jake Retich",
   brandInitials: "JR",
+  photo: "profile.jpg",   // profile picture shown in the avatar circle. Leave "" to fall back to initials.
   handle: "@jakeretich · Vertical Video Editor",
   bio: "Vertical editor for **Mark Rober** & **Zach King**. I turn raw footage into Shorts built for retention, not clicks.",
 
@@ -436,6 +438,9 @@ const CONFIG = {
     { id: "giRypxceh4E", title: "I guess it's time to buy new clothes", role: "Editor", views: "230.8K", date: "2024-10", creator: "" },
     { id: "f-bQUu6vM7k", title: "Homemade Airplane ✈️ Set", role: "Editor", views: "233.9K", date: "2024-09", creator: "" },
     { id: "i9lKnzAZ5WU", title: "🪴+👱‍♂️=😱", role: "Editor", views: "246.5K", date: "2024-10", creator: "" },
+    { id: "-F_0Vy3TWFc", title: "", role: "Creator", views: "", date: "", creator: "My Channel" },
+    { id: "Rl65tKXRLU8", title: "", role: "Creator", views: "", date: "", creator: "My Channel" },
+    { id: "HNetY41ZC7k", title: "", role: "Creator", views: "", date: "", creator: "My Channel" },
   ]
 };
 
@@ -485,7 +490,16 @@ document.title = CONFIG.name + " — Vertical Video Editor";
 
 // Profile block
 (function renderProfile(){
-  $("#avatarInitials").textContent = CONFIG.brandInitials || "JR";
+  const avatar = $("#avatarInitials");
+  if(CONFIG.photo){
+    const img = document.createElement("img");
+    img.src = CONFIG.photo;
+    img.alt = CONFIG.name;
+    img.addEventListener("error", () => { avatar.textContent = CONFIG.brandInitials || "JR"; }, { once:true });
+    avatar.appendChild(img);
+  } else {
+    avatar.textContent = CONFIG.brandInitials || "JR";
+  }
   $("#profileName").textContent = CONFIG.name;
   $("#profileHandle").textContent = CONFIG.handle;
   $("#profileBio").innerHTML = md(CONFIG.bio);
